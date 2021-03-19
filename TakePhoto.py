@@ -40,6 +40,9 @@ ser = serial.Serial(
 
 cam = cv2.VideoCapture(0)
 
+cam.set(3, 176)
+cam.set(4, 144)
+
 cv2.namedWindow("test")
 
 img_counter = 0
@@ -88,7 +91,7 @@ def createImage(frame, path):
     timestamp = str(datetime.timestamp(now)).replace('.', '')
     filename = os.path.join(path, f'Image_{timestamp}.jpg')
     cv2.imwrite(filename, frame)
-    #print("image printed")
+    print("image printed")
     imgList.append(filename)
     steeringList.append(label)
     
@@ -111,6 +114,9 @@ if not os.path.exists(os.path.dirname(path)):
 
 #os.chdir(path)
 
+previous = time.time()
+delta = 0
+
 while True:
     getSteering()
 
@@ -123,13 +129,25 @@ while True:
     
     cv2.imshow("test", frame)
 
-        
+
+    current = time.time()
+    delta += current - previous
+    previous = current
+
+    # Check if 3 (or some other value) seconds passed
+    if delta > 1:
+        # Operations on image
+        # Reset the time counter
+        delta = 0    
+
+        if(photo_enabled):
+            createImage(frame, path)
         
         #elif k%256 == 32:
             # SPACE pressed
-    if(photo_enabled):
-        createImage(frame, path)
     
+    if k%256 == 32:
+        photo_enabled =  not photo_enabled
 
     if k%256 == 27:
             # ESC pressed
