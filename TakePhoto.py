@@ -5,14 +5,38 @@ from datetime import datetime
 import pandas as pd
 import serial
 import math
+import time
+
+####### connect to serial terminal : "sudo rfcomm watch hci0"
 
 com = "/dev/rfcomm0"
 
-s = serial.Serial(com,
-                  baudrate = 9600, 
-                  parity=serial.PARITY_ODD, 
-                  stopbits=serial.STOPBITS_TWO,
-                  timeout=1)
+
+while True:
+    try:
+        s = serial.Serial(com,
+                        baudrate = 9600, 
+                        parity=serial.PARITY_ODD, 
+                        stopbits=serial.STOPBITS_TWO,
+                        timeout=1)
+
+        break
+    except : 
+        continue
+
+    
+
+
+
+
+ser = serial.Serial(
+        port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
+        baudrate = 9600,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1
+)
 
 cam = cv2.VideoCapture(0)
 
@@ -34,19 +58,27 @@ def getSteering():
     if s.isOpen():
         if(s.in_waiting> 0):
             line = s.read(3)
-            if(line[0] == 0xFF):
+            if(line[0] == 0x0F):
                 left_motor = line[1]
                 right_motor = line[2]
                 label = int((left_motor - right_motor)/10)               
                 label = min(label, 8) if (label > 0) else max(label, -8)               
                 print(left_motor, right_motor, label)
-            if(line[0] == 0xFE):
-                if(line[2] != 0):
+                ser.write(line)
+            if(line[0] == 0x0E):
+                if(line[2] == 1):
                     photo_enabled = True
                     print("Taking photos..")
-                else:
+                elif line[2] == 0:
                     photo_enabled = False
                     print("stoppped taking photos..")
+
+                elif line[2] == 2 :
+                    saveToCsv(path)
+                    cam.release()
+                    cv2.destroyAllWindows()
+                    exit()
+
 
 
 
@@ -88,6 +120,7 @@ while True:
     if not ret:
         print("failed to grab frame")
         break
+    
     cv2.imshow("test", frame)
 
         
