@@ -1,6 +1,8 @@
 # TREX_RASPBERRY
 ---
 
+[TOC]
+
 ## Brief
 This Program takes photos periodically to train neural network application as well as forwarding the phone app motor commands to the TREX_CONTROLLER program
 
