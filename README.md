@@ -18,7 +18,7 @@ After=bluetooth.service
 Requires=bluetooth.service
 
 [Service]
-ExecStart=/usr/bin/rfcomm watch hcio
+ExecStart=/usr/bin/rfcomm watch hci0
 
 [Install]
 WantedBy=multi-user.target
