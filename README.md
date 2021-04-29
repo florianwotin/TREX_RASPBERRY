@@ -11,22 +11,42 @@ clone this repository on your raspberry workspace :
  git clone https://github.com/florianwotin/TREX_RASPBERRY.git
 ```
 
-Create a serialBluetooth.service in etc/systemd/system and copy the following code into it:
+Create a rfcomm.service in /etc/systemd/system and copy the following code into it:
 ```[Service]
+Description=RFCOMM service
+After=bluetooth.service
+Requires=bluetooth.service
+
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/usr/libexec/iptables.init start
-ExecStop=/usr/libexec/iptables.init stop
+ExecStart=/usr/bin/rfcomm watch hcio
 
+[Install]
+WantedBy=multi-user.target
 ```
 
-Create a Trex.service in etc/systemd/system and copy the following code into it:
+Create a trex.service in /etc/systemd/system and copy the following code into it:
+```[Service]
+[Unit]
+Description=The TREX Photo Service
+After=multi-user.target
+
+[Service]
+Environment=DISPLAY=0.0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+Type=idle
+ExecStart=/usr/bin/python3 /home/pi/Projects/TakePhoto.py > home/pi/Projects/output.txt
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi.user.target
+```
+
+Then update the services with the commands:
 ```bash
-
+sudo systemctl enable rfcomm.service
+sudo systemctl enable trex.service
 ```
-
-Then update the services with the command:
 
 Then reboot the raspberry
 
@@ -45,10 +65,10 @@ label = min(label, 8) if (label > 0) else max(label, -8))
 
 When the stop recording message (0xE 0x0 0x0) is received, the program will save a csv with the folowing format:
 
-| File UUID | label |
+| File Name | label |
 | --------- |:-----:|
-| fileName  |   0   |
-| fileName  |  -5   |
-| fileName  |  -4   | 
+| UUID      |   0   |
+| UUID      |  -5   |
+| UUID      |  -4   |
 
 This CSV can then be used to train the neural network.
